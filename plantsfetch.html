@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Data Fetch</title>
+    <script>
+        async function fetchAllData(baseUrl) {
+            let page = 326;
+            let allData = [];
+            let hasMoreData = true;
+
+            while (hasMoreData) {
+                let url = `${baseUrl}&page=${page}`;
+                try {
+                    let response = await fetch(url);
+                    if (response.ok) {
+                        let data = await response.json();
+                        allData = allData.concat(data);
+                        if (data.length < 30) {
+                            hasMoreData = false;
+                        } else {
+                            page++;
+                        }
+                    } else {
+                        console.error('Error fetching data:', response.status);
+                        hasMoreData = false;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    hasMoreData = false;
+                }
+            }
+
+            return allData;
+        }
+
+        function downloadJSON(data, filename) {
+            const jsonStr = JSON.stringify(data, null, 2); // Convert the data to a nicely formatted JSON string
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const API_KEY = "YOUR_API_KEY"
+            const baseUrl = `https://perenual.com/api/species-list?key=${API_KEY}`;  // Replace with your actual API URL
+            fetchAllData(baseUrl).then(allData => {
+                console.log('Fetched all data:', allData);
+                downloadJSON(allData, 'fetched_data.json'); // Automatically trigger download after data fetch
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <h1>API Data Fetch and Download</h1>
+</body>
+
+</html>
